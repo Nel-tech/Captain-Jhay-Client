@@ -8,7 +8,7 @@ export function useCreateContact() {
 
   return useMutation({
     mutationFn: async (data: InsertContact) => {
-      const res = await apiRequest("POST", "/api/contacts", data);
+      const res = await apiRequest("POST", "/api/contact", data);
       return res.json();
     },
     onSuccess: () => {
