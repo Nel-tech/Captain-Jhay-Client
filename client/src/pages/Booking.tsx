@@ -1,19 +1,28 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateBooking } from "@/hooks/use-bookings";
-import { insertBookingSchema, type InsertBooking } from "@shared/schema";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Plane, Calendar, User, Mail, Phone, Luggage } from "lucide-react";
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useCreateBooking } from "@/hooks/use-bookings"
+import { insertBookingSchema, type InsertBooking } from "@shared/schema"
+import {
+  Plane, Calendar, Mail, Phone, Luggage, User,
+  ArrowLeftRight, Minus, Plus, Loader2, Users
+} from "lucide-react"
+import {
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage
+} from "@/components/ui/form"
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle
+} from "@/components/ui/card"
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from "@/components/ui/select"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
 
 export default function Booking() {
   const { mutate, isPending } = useCreateBooking();
-  
+
   const form = useForm<InsertBooking>({
     resolver: zodResolver(insertBookingSchema),
     defaultValues: {
@@ -31,6 +40,20 @@ export default function Booking() {
       returnDate: "",
     },
   });
+
+  const today = new Date().toISOString().split("T")[0];
+  const departureDate = form.watch("departureDate");
+  const adults = form.watch("adults");
+  const children = form.watch("children");
+  const cabinClass = form.watch("cabinClass");
+  const tripType = form.watch("tripType");
+
+  function handleSwap() {
+    const from = form.getValues("departureCity");
+    const to = form.getValues("destinationCity");
+    form.setValue("departureCity", to);
+    form.setValue("destinationCity", from);
+  }
 
   function onSubmit(data: InsertBooking) {
     mutate(data, {
@@ -58,10 +81,11 @@ export default function Booking() {
               </CardTitle>
               <CardDescription>Tell us where and when you want to fly.</CardDescription>
             </CardHeader>
+
             <CardContent className="p-8">
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  
+
                   {/* Trip Type */}
                   <FormField
                     control={form.control}
@@ -94,40 +118,52 @@ export default function Booking() {
                     )}
                   />
 
-                  {/* Cities */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="departureCity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>From (City or Airport)</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Plane className="absolute left-3 top-3 w-4 h-4 text-muted-foreground transform rotate-45" />
-                              <Input placeholder="e.g. Lagos (LOS)" className="pl-10" {...field} />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="destinationCity"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>To (City or Airport)</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Plane className="absolute left-3 top-3 w-4 h-4 text-muted-foreground transform rotate-45" />
-                              <Input placeholder="e.g. London (LHR)" className="pl-10" {...field} />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                  {/* Cities with Swap */}
+                  <div className="relative">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="departureCity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>From (City or Airport)</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Plane className="absolute left-3 top-3 w-4 h-4 text-muted-foreground transform rotate-45" />
+                                <Input placeholder="e.g. Lagos (LOS)" className="pl-10" {...field} />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="destinationCity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>To (City or Airport)</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Plane className="absolute left-3 top-3 w-4 h-4 text-muted-foreground transform -rotate-45" />
+                                <Input placeholder="e.g. London (LHR)" className="pl-10" {...field} />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Swap button */}
+                    <button
+                      type="button"
+                      onClick={handleSwap}
+                      className="absolute left-1/2 top-8 -translate-x-1/2 z-10 bg-white border-2 border-primary rounded-full p-2 hover:bg-primary hover:text-white transition-all shadow-md hidden md:flex items-center justify-center"
+                      title="Swap cities"
+                    >
+                      <ArrowLeftRight className="w-4 h-4" />
+                    </button>
                   </div>
 
                   {/* Dates */}
@@ -141,15 +177,20 @@ export default function Booking() {
                           <FormControl>
                             <div className="relative">
                               <Calendar className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                              <Input type="date" className="pl-10" {...field} />
+                              <Input
+                                type="date"
+                                min={today}
+                                className="pl-10"
+                                {...field}
+                              />
                             </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
-                    {form.watch("tripType") === "round-trip" && (
+
+                    {tripType === "round-trip" && (
                       <FormField
                         control={form.control}
                         name="returnDate"
@@ -159,7 +200,13 @@ export default function Booking() {
                             <FormControl>
                               <div className="relative">
                                 <Calendar className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                                <Input type="date" className="pl-10" {...field} value={field.value || ""} />
+                                <Input
+                                  type="date"
+                                  min={departureDate || today}
+                                  className="pl-10"
+                                  {...field}
+                                  value={field.value || ""}
+                                />
                               </div>
                             </FormControl>
                             <FormMessage />
@@ -171,44 +218,66 @@ export default function Booking() {
 
                   {/* Passengers & Class */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    {/* Adults counter */}
                     <FormField
                       control={form.control}
                       name="adults"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Adults (12+)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              min={1} 
-                              max={10} 
-                              {...field} 
-                              onChange={e => field.onChange(parseInt(e.target.value))}
-                            />
-                          </FormControl>
+                          <div className="flex items-center gap-3 border rounded-md px-3 py-2">
+                            <button
+                              type="button"
+                              onClick={() => { if (field.value > 1) field.onChange(field.value - 1) }}
+                              className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="flex-1 text-center font-medium">{field.value}</span>
+                            <button
+                              type="button"
+                              onClick={() => { if (field.value < 9) field.onChange(field.value + 1) }}
+                              className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
+                    {/* Children counter */}
                     <FormField
                       control={form.control}
                       name="children"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Children (2-11)</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number" 
-                              min={0} 
-                              max={10} 
-                              {...field}
-                              onChange={e => field.onChange(parseInt(e.target.value))} 
-                            />
-                          </FormControl>
+                          <div className="flex items-center gap-3 border rounded-md px-3 py-2">
+                            <button
+                              type="button"
+                              onClick={() => { if (field.value > 0) field.onChange(field.value - 1) }}
+                              className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="flex-1 text-center font-medium">{field.value}</span>
+                            <button
+                              type="button"
+                              onClick={() => { if (field.value < 9) field.onChange(field.value + 1) }}
+                              className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-muted transition-colors"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
+                    {/* Cabin Class */}
                     <FormField
                       control={form.control}
                       name="cabinClass"
@@ -234,15 +303,28 @@ export default function Booking() {
                     />
                   </div>
 
-                  <div className="h-px bg-border my-8" />
+                  {/* Passenger Summary Badge */}
+                  <div className="bg-muted rounded-lg p-4 flex items-center gap-3 text-sm">
+                    <Users className="w-4 h-4 text-accent shrink-0" />
+                    <span>
+                      <strong>{adults}</strong> Adult{adults > 1 ? "s" : ""}
+                      {children > 0 && <>, <strong>{children}</strong> Child{children > 1 ? "ren" : ""}</>}
+                      {" · "}
+                      <strong className="capitalize">{cabinClass.replace("-", " ")}</strong>
+                      {" · "}
+                      <strong className="capitalize">{tripType.replace("-", " ")}</strong>
+                    </span>
+                  </div>
 
-                  {/* Personal Info */}
+                  <div className="h-px bg-border" />
+
+                  {/* Contact Information */}
                   <div className="space-y-6">
                     <h3 className="text-xl font-semibold flex items-center gap-2">
                       <User className="w-5 h-5 text-accent" />
                       Contact Information
                     </h3>
-                    
+
                     <FormField
                       control={form.control}
                       name="fullName"
@@ -301,11 +383,11 @@ export default function Booking() {
                           <FormControl>
                             <div className="relative">
                               <Luggage className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                              <Textarea 
-                                placeholder="Dietary requirements, wheelchair assistance, etc." 
-                                className="pl-10 min-h-[100px]" 
+                              <Textarea
+                                placeholder="Dietary requirements, wheelchair assistance, etc."
+                                className="pl-10 min-h-[100px]"
                                 {...field}
-                                value={field.value || ""} 
+                                value={field.value || ""}
                               />
                             </div>
                           </FormControl>
@@ -315,16 +397,30 @@ export default function Booking() {
                     />
                   </div>
 
-                  <Button 
-                    type="submit" 
+                  {/* Submit */}
+                  <Button
+                    type="submit"
                     className="w-full h-14 text-lg font-semibold rounded-lg shadow-lg"
                     disabled={isPending}
                   >
-                    {isPending ? "Processing..." : "Submit Booking Request"}
+                    {isPending ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Processing your request...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Plane className="w-5 h-5" />
+                        Submit Booking Request
+                      </span>
+                    )}
                   </Button>
+
                   <p className="text-xs text-center text-muted-foreground">
-                    By submitting this form, you agree to our Terms of Service and Privacy Policy. We will contact you to confirm pricing and availability.
+                    By submitting this form, you agree to our Terms of Service and Privacy Policy.
+                    We will contact you to confirm pricing and availability.
                   </p>
+
                 </form>
               </Form>
             </CardContent>

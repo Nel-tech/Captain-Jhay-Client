@@ -2,7 +2,7 @@ import { z } from "zod"
 
 // Booking schema
 export const insertBookingSchema = z.object({
-  tripType: z.string().min(1),
+  tripType: z.enum(["round-trip", "one-way"]),
   departureCity: z.string().min(1),
   destinationCity: z.string().min(1),
   departureDate: z.string().min(1),

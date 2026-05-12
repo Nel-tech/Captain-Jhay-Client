@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import { api, type InsertContact } from "@shared/routes";
+import { apiRequest } from "@/lib/queryClient";
+import { type InsertContact } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 
 export function useCreateContact() {
@@ -7,17 +8,7 @@ export function useCreateContact() {
 
   return useMutation({
     mutationFn: async (data: InsertContact) => {
-      const res = await fetch(api.contacts.create.path, {
-        method: api.contacts.create.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Failed to send message");
-      }
-
+      const res = await apiRequest("POST", "/api/contacts", data);
       return res.json();
     },
     onSuccess: () => {
@@ -27,7 +18,7 @@ export function useCreateContact() {
         variant: "default",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         title: "Error",
         description: error.message,
